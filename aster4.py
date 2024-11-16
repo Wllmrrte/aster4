@@ -30,9 +30,6 @@ ARCHIVO_URLS = 'memoria_urls.json'
 # Diccionario para almacenar permisos con fecha de expiración
 permisos = {}
 
-# Diccionario para registrar intentos de usuarios no autorizados
-intentos_no_autorizados = {}
-
 # Máximo de intentos antes de bloquear temporalmente
 MAX_INTENTOS = 5
 BLOQUEO_TIEMPO = timedelta(hours=2)
@@ -42,9 +39,6 @@ URLS = {
     'vip': {},
     'gold': {}
 }
-
-# Registro de valores enviados previamente
-valores_enviados = set()
 
 # Cargar permisos y URLs desde los archivos JSON
 def cargar_permisos():
@@ -81,9 +75,13 @@ async def obtener_datos(url):
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            usuario = soup.find(text="Usuario:").find_next('input')['value']
-            password = soup.find(text="Contraseña:").find_next('input')['value']
-            token = soup.find(text="Token:").find_next('input')['value']
+            usuario_tag = soup.find('input', {'id': 'usuario'})
+            password_tag = soup.find('input', {'id': 'password'})
+            token_tag = soup.find('input', {'id': 'token'})
+
+            usuario = usuario_tag['value'] if usuario_tag else None
+            password = password_tag['value'] if password_tag else None
+            token = token_tag['value'] if token_tag else None
 
             return usuario, password, token
         else:
@@ -106,9 +104,9 @@ async def manejar_comando(event, url, client):
                 chat_id = event.chat_id
                 
                 # Enviar cada dato individualmente
-                await client.send_message(chat_id, usuario)
-                await client.send_message(chat_id, password)
-                await client.send_message(chat_id, token)
+                await client.send_message(chat_id, f"Usuario: {usuario}")
+                await client.send_message(chat_id, f"Contraseña: {password}")
+                await client.send_message(chat_id, f"Token: {token}")
                 
             else:
                 await client.send_message(event.chat_id, "❌ Error al obtener los datos del token.")
@@ -320,8 +318,6 @@ async def listar_comandos_usuario(event):
             lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
         elif nivel == 'gold':
             lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
-            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['gold'].items()])
-        if nivel == 'gold':
             lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['gold'].items()])
         
         if lista_comandos:
