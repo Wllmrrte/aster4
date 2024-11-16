@@ -316,8 +316,11 @@ async def listar_comandos_usuario(event):
         nivel = permisos[username]['nivel']
         lista_comandos = []
         
-        if nivel == 'vip' or nivel == 'gold':
+        if nivel == 'vip':
             lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
+        elif nivel == 'gold':
+            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['vip'].items()])
+            lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['gold'].items()])
         if nivel == 'gold':
             lista_comandos.extend([f"/{comando}: {url}" for comando, url in URLS['gold'].items()])
         
