@@ -100,9 +100,9 @@ async def manejar_comando(event, url, client):
                 chat_id = event.chat_id
                 
                 # Enviar cada dato individualmente
-                await client.send_message(chat_id, f"Usuario: {usuario}")
-                await client.send_message(chat_id, f"Contraseña: {password}")
-                await client.send_message(chat_id, f"Token: {token}")
+                await client.send_message(chat_id, f" {usuario}")
+                await client.send_message(chat_id, f" {password}")
+                await client.send_message(chat_id, f" {token}")
                 
             else:
                 await client.send_message(event.chat_id, "❌ Error al obtener los datos del token.")
