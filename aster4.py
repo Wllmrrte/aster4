@@ -12,9 +12,9 @@ API_HASH_1 = '400dafb52292ea01a8cf1e5c1756a96a'
 PHONE_NUMBER_1 = '+51981119038'
 
 # Configuración del cliente de Telegram para la segunda cuenta
-API_ID_2 = '20451779'
-API_HASH_2 = 'da79d8408831a094d64edb184f253bab'
-PHONE_NUMBER_2 = '+51903356436'
+API_ID_2 = '24994755'
+API_HASH_2 = '83c4d6c5ab28171766cb4b67f900d185'
+PHONE_NUMBER_2 = '+51944865840'
 
 # Inicializar clientes de Telegram para las dos cuentas
 client_1 = TelegramClient('mi_sesion_token_1', API_ID_1, API_HASH_1)
@@ -327,6 +327,53 @@ async def listar_comandos_usuario(event):
             await client.send_message(event.chat_id, "❌ No tienes comandos disponibles actualmente.")
     else:
         await client.send_message(event.chat_id, "❌ No tienes una membresía activa para ver los comandos disponibles.")
+
+# Comando para verificar el tiempo restante de membresía
+@client_1.on(events.NewMessage(pattern='/me (.+)'))
+@client_2.on(events.NewMessage(pattern='/me (.+)'))
+async def verificar_membresia(event):
+    # Verificar si el mensaje es privado
+    if not event.is_private:
+        return
+    
+    usuario_a_verificar = event.pattern_match.group(1).lstrip('@')  # Eliminar '@' del nombre de usuario si está presente
+    
+    if usuario_a_verificar in permisos:
+        tiempo_restante = permisos[usuario_a_verificar]['expiracion'] - datetime.now()
+        dias, segundos = tiempo_restante.days, tiempo_restante.seconds
+        horas = segundos // 3600
+        minutos = (segundos % 3600) // 60
+        await event.client.send_message(event.chat_id, f"@{usuario_a_verificar} cuenta con {dias} días, {horas} horas y {minutos} minutos de membresía.")
+    else:
+        await event.client.send_message(event.chat_id, f"❌ No se encontraron permisos para {usuario_a_verificar}.")
+
+# Comando para listar todas las membresías registradas
+@client_1.on(events.NewMessage(pattern='/membresias'))
+@client_2.on(events.NewMessage(pattern='/membresias'))
+async def listar_membresias(event):
+    # Verificar si el mensaje es privado
+    if not event.is_private:
+        return
+    
+    sender = await event.get_sender()
+    username = sender.username
+    client = event.client
+    
+    if username == ADMIN_USER:
+        lista_membresias = []
+        for usuario, permiso in permisos.items():
+            tiempo_restante = permiso['expiracion'] - datetime.now()
+            dias, segundos = tiempo_restante.days, tiempo_restante.seconds
+            horas = segundos // 3600
+            minutos = (segundos % 3600) // 60
+            lista_membresias.append(f"@{usuario}: {permiso['nivel'].upper()}, {dias} días, {horas} horas, {minutos} minutos restantes")
+        
+        if lista_membresias:
+            await client.send_message(event.chat_id, f"📋 Lista de membresías registradas:\n" + "\n".join(lista_membresias))
+        else:
+            await client.send_message(event.chat_id, "❌ No hay membresías registradas actualmente.")
+    else:
+        await client.send_message(event.chat_id, "❌ No tienes permiso para ver las membresías registradas.")
 
 # Cargar permisos y URLs al iniciar el bot
 cargar_permisos()
