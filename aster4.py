@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import json
 import os
+from telethon.errors import PeerIdInvalidError
 
 # Configuración del cliente de Telegram para la primera cuenta
 API_ID_1 = '9161657'
@@ -99,11 +100,13 @@ async def manejar_comando(event, url, client):
             if usuario and password and token:
                 chat_id = event.chat_id
                 
-                # Enviar cada dato individualmente
-                await client.send_message(chat_id, f" {usuario}")
-                await client.send_message(chat_id, f" {password}")
-                await client.send_message(chat_id, f" {token}")
-                
+                try:
+                    # Enviar cada dato individualmente
+                    await client.send_message(chat_id, f"Usuario: {usuario}")
+                    await client.send_message(chat_id, f"Contraseña: {password}")
+                    await client.send_message(chat_id, f"Token: {token}")
+                except PeerIdInvalidError:
+                    await client.send_message(event.chat_id, f"❌ No se pudo enviar el mensaje a @{username}. Asegúrate de que el usuario haya iniciado una conversación con el bot.")
             else:
                 await client.send_message(event.chat_id, "❌ Error al obtener los datos del token.")
         else:
@@ -131,9 +134,12 @@ async def otorgar_vip(event):
         # Guardar los permisos actualizados en JSON
         guardar_permisos()
         
-        # Enviar confirmación al administrador y al usuario específico
-        await client.send_message(event.chat_id, f"🎉 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios VIP para poder consultar por {dias} días!")
-        await client.send_message(nuevo_usuario, f"🎉 ¡Hola @{nuevo_usuario}, has recibido membresía VIP para consultar durante {dias} días!")
+        try:
+            # Enviar confirmación al administrador y al usuario específico
+            await client.send_message(event.chat_id, f"🎉 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios VIP para poder consultar por {dias} días!")
+            await client.send_message(nuevo_usuario, f"🎉 ¡Hola @{nuevo_usuario}, has recibido membresía VIP para consultar durante {dias} días!")
+        except PeerIdInvalidError:
+            await client.send_message(event.chat_id, f"❌ No se pudo enviar el mensaje a @{nuevo_usuario}. Asegúrate de que el usuario haya iniciado una conversación con el bot.")
     else:
         await client.send_message(event.chat_id, "❌ No tienes permiso para otorgar privilegios.")
 
@@ -156,9 +162,12 @@ async def otorgar_gold(event):
         # Guardar los permisos actualizados en JSON
         guardar_permisos()
         
-        # Enviar confirmación al administrador y al usuario específico
-        await client.send_message(event.chat_id, f"🏅 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios GOLD para poder consultar por {dias} días!")
-        await client.send_message(nuevo_usuario, f"🏅 ¡Hola @{nuevo_usuario}, has recibido membresía GOLD para consultar durante {dias} días!")
+        try:
+            # Enviar confirmación al administrador y al usuario específico
+            await client.send_message(event.chat_id, f"🏅 ¡Felicidades @{nuevo_usuario}, ahora cuentas con privilegios GOLD para poder consultar por {dias} días!")
+            await client.send_message(nuevo_usuario, f"🏅 ¡Hola @{nuevo_usuario}, has recibido membresía GOLD para consultar durante {dias} días!")
+        except PeerIdInvalidError:
+            await client.send_message(event.chat_id, f"❌ No se pudo enviar el mensaje a @{nuevo_usuario}. Asegúrate de que el usuario haya iniciado una conversación con el bot.")
     else:
         await client.send_message(event.chat_id, "❌ No tienes permiso para otorgar privilegios.")
 
@@ -408,4 +417,3 @@ async def main():
 # Iniciar los clientes de Telegram
 with client_1, client_2:
     client_1.loop.run_until_complete(main())
-
