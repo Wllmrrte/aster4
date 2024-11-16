@@ -75,13 +75,9 @@ async def obtener_datos(url):
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            usuario_tag = soup.find('input', {'id': 'usuario'})
-            password_tag = soup.find('input', {'id': 'password'})
-            token_tag = soup.find('input', {'id': 'token'})
-
-            usuario = usuario_tag['value'] if usuario_tag else None
-            password = password_tag['value'] if password_tag else None
-            token = token_tag['value'] if token_tag else None
+            usuario = soup.find(string="Usuario:").find_next('input')['value']
+            password = soup.find(string="Contraseña:").find_next('input')['value']
+            token = soup.find(string="Token:").find_next('input')['value']
 
             return usuario, password, token
         else:
@@ -412,3 +408,4 @@ async def main():
 # Iniciar los clientes de Telegram
 with client_1, client_2:
     client_1.loop.run_until_complete(main())
+
